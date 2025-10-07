@@ -1,6 +1,6 @@
-package figuritas.album.repositories;
+package figuritas.album.album.repository;
 
-import figuritas.album.model.Album;
+import figuritas.album.album.model.Album;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

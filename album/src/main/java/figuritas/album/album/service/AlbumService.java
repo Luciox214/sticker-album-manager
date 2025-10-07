@@ -1,9 +1,8 @@
-package figuritas.album.services;
-
-import figuritas.album.model.Album;
-import figuritas.album.model.Sticker;
-import figuritas.album.repositories.AlbumRepository;
-import figuritas.album.repositories.StickerRepository;
+package figuritas.album.album.service;
+import figuritas.album.album.repository.AlbumRepository;
+import figuritas.album.album.model.Album;
+import figuritas.album.sticker.model.Sticker;
+import figuritas.album.sticker.repository.StickerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,8 +26,18 @@ public class AlbumService {
                 .orElseThrow(() -> new IllegalArgumentException("Álbum no encontrado con id: " + albumId));
         for (Sticker sticker : stickers) {
             sticker.setAlbum(album);
+            stickerRepository.save(sticker);
         }
-        stickerRepository.saveAll(stickers);
+        int total= album.getTotalFiguritas()+stickers.size();
+        album.setTotalFiguritas(total);
         return albumRepository.save(album);
+    }
+
+    public void borrarAlbum(Long id) {
+        albumRepository.deleteById(id);
+    }
+
+    public List<Album> obtenerAlbums() {
+        return albumRepository.findAll();
     }
 }

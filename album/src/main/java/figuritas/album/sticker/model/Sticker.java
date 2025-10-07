@@ -1,22 +1,24 @@
-package figuritas.album.model;
+package figuritas.album.sticker.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import figuritas.album.album.model.Album;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
-public class UserSticker {
+public class Sticker {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    private Usuario usuario;
+    private String nombre;
 
     @ManyToOne
-    private Sticker sticker;
+    @JsonIgnore
+    private Album album;
 
 }

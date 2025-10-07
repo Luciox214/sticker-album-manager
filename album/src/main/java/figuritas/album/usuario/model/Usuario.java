@@ -1,4 +1,6 @@
-package figuritas.album.model;
+package figuritas.album.usuario.model;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import figuritas.album.userSticker.model.UserSticker;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +18,7 @@ public class Usuario {
     private Long id;
     private String username;
 
-    @OneToMany(mappedBy = "usuario")
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<UserSticker> figuritas = new ArrayList<>();
 }

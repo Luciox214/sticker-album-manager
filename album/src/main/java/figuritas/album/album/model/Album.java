@@ -1,4 +1,5 @@
-package figuritas.album.model;
+package figuritas.album.album.model;
+import figuritas.album.sticker.model.Sticker;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +18,7 @@ public class Album {
     private String titulo;
     private int totalFiguritas;
 
-    @OneToMany(mappedBy = "album")
+    @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Sticker> figuritas = new ArrayList<>();
 
 }
