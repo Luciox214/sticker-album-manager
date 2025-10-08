@@ -14,6 +14,7 @@ import java.util.*;
 public class Album {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+
     private Long id;
     private String titulo;
     private int totalFiguritas;

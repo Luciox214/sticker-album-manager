@@ -19,6 +19,7 @@ public class Sticker {
 
     @ManyToOne
     @JsonIgnore
+    @JoinColumn(name = "album_id")
     private Album album;
 
 }
