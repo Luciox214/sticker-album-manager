@@ -1,4 +1,5 @@
 package figuritas.album.album.service;
+
 import figuritas.album.album.repository.AlbumRepository;
 import figuritas.album.album.model.Album;
 import figuritas.album.sticker.model.Sticker;
@@ -38,7 +39,7 @@ public class AlbumService {
             sticker.setAlbum(album);
             stickerRepository.save(sticker);
         }
-        int total= album.getTotalFiguritas()+stickers.size();
+        int total = album.getTotalFiguritas() + stickers.size();
         album.setTotalFiguritas(total);
         return albumRepository.save(album);
     }
@@ -50,7 +51,6 @@ public class AlbumService {
     public List<Album> obtenerAlbums() {
         return albumRepository.findAll();
     }
-
 
     @Transactional()
     public List<UserSticker> obtenerFiguritasRepetidas(Long userId) {
@@ -64,6 +64,7 @@ public class AlbumService {
         }
         return userStickerRepository.findByUsuarioAndStickerIds(usuario, stickerIdDuplicados);
     }
+
     public double obtenerPorcentajeAlbumCompleto(Long usuarioId, Long albumId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + usuarioId));
@@ -75,5 +76,36 @@ public class AlbumService {
         }
         long figuritasUnicasUsuario = userStickerRepository.countByUserAndAlbum(usuario, album);
         return ((double) figuritasUnicasUsuario / totalFiguritasAlbum) * 100;
+    }
+
+    @Transactional()
+    public List<Sticker> obtenerFiguritasFaltantes(Long usuarioId, Long albumId) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + usuarioId));
+        albumRepository.findById(albumId)
+                .orElseThrow(() -> new EntityNotFoundException("Álbum no encontrado con ID: " + albumId));
+
+        List<Sticker> albumStickers = stickerRepository.findByAlbumId(albumId);
+
+        List<Long> stickerIds = albumStickers.stream()
+                .map(Sticker::getId)
+                .toList();
+
+        if (stickerIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<UserSticker> usuarioStickers = userStickerRepository.findByUsuarioAndStickerIds(
+                usuario,
+                stickerIds);
+
+        List<Long> usuarioStickerIds = usuarioStickers.stream()
+                .map(us -> us.getSticker().getId())
+                .distinct()
+                .toList();
+
+        return albumStickers.stream()
+                .filter(sticker -> !usuarioStickerIds.contains(sticker.getId()))
+                .toList();
     }
 }

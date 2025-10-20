@@ -1,4 +1,5 @@
 package figuritas.album.album.controller;
+
 import figuritas.album.album.model.Album;
 import figuritas.album.album.service.AlbumService;
 import figuritas.album.sticker.model.Sticker;
@@ -70,6 +71,17 @@ public class AlbumController {
             @PathVariable Long albumId) {
 
         double porcentaje = albumService.obtenerPorcentajeAlbumCompleto(userId, albumId);
-        return ResponseEntity.ok("El álbum " + albumId + " del usuario " + userId + " está completo en un " + porcentaje + "%");
+        return ResponseEntity
+                .ok("El álbum " + albumId + " del usuario " + userId + " está completo en un " + porcentaje + "%");
+    }
+
+    @Operation(summary = "Obtener figuritas faltantes del usuario", description = "Devuelve la lista de figuritas que le faltan al usuario para completar el álbum")
+    @ApiResponse(responseCode = "200", description = "Figuritas faltantes obtenidas correctamente")
+    @GetMapping("/{albumId}/faltantes")
+    public ResponseEntity<List<Sticker>> obtenerFiguritasFaltantes(
+            @RequestParam Long userId,
+            @PathVariable Long albumId) {
+
+        return ResponseEntity.ok(albumService.obtenerFiguritasFaltantes(userId, albumId));
     }
 }
