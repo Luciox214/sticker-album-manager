@@ -75,6 +75,26 @@ public class AlbumController {
                 .ok("El álbum " + albumId + " del usuario " + userId + " está completo en un " + porcentaje + "%");
     }
 
+    @Operation(summary = "Verificar y crear recompensa si el álbum está completo",
+           description = "Si el usuario completó el álbum, crea el UserReward y notifica (Observer).")
+    @ApiResponse(responseCode = "200", description = "Chequeo realizado")
+    @PostMapping("/{albumId}/check-completo")
+    public ResponseEntity<CheckCompletoResponse> verificarYCrearReward(
+            @RequestParam Long userId,
+            @PathVariable Long albumId) {
+
+        boolean creado = albumService.verificarYCrearRewardSiCorresponde(userId, albumId);
+        String mensaje = creado
+            ? "🎉 Álbum completo: recompensa creada y notificada."
+            : "Álbum aún no completo. No se creó recompensa.";
+
+        return ResponseEntity.ok(new CheckCompletoResponse(albumId, userId, creado, mensaje));  
+    }
+
+/** DTO para la respuesta del check */
+public static record CheckCompletoResponse(Long albumId, Long userId, boolean recompensaCreada, String mensaje) {}
+
+
     @Operation(summary = "Obtener figuritas faltantes del usuario", description = "Devuelve la lista de figuritas que le faltan al usuario para completar el álbum")
     @ApiResponse(responseCode = "200", description = "Figuritas faltantes obtenidas correctamente")
     @GetMapping("/{albumId}/faltantes")

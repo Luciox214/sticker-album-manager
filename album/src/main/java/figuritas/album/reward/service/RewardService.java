@@ -44,6 +44,7 @@ public class RewardService {
         return rewardRepository.save(reward);
     }
 
+    /* 
     @Transactional
     public UserReward reclamarPremio(Long usuarioId, Long albumId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
@@ -74,7 +75,7 @@ public class RewardService {
         sujeto.notificarObservadores(newUserReward);
         newUserReward.cambiarEstado(new Reclamado());
         return userRewardRepository.save(newUserReward);
-    }
+    }*/
 
     public Iterable<Reward> listarPremios() {
         return rewardRepository.findAll();

@@ -28,6 +28,7 @@ public class RewardController {
                 .body("Premio creado con éxito: " + nuevo.getTipo());
     }
 
+    /* 
     @Operation(summary = "Reclamar premio", description = "Permite a un usuario reclamar un premio asociado a su álbum")
     @ApiResponse(responseCode = "200", description = "Premio reclamado exitosamente")
     @PostMapping("/reclamar")
@@ -38,7 +39,7 @@ public class RewardController {
         UserReward reclamado = rewardService.reclamarPremio(usuarioId, albumId);
         return ResponseEntity.ok("Premio '" + reclamado.getReward().getTipo()    +
                 "' reclamado correctamente por el usuario con ID: " + usuarioId);
-    }
+    }*/
 
     @Operation(summary = "Listar todos los premios", description = "Devuelve la lista de premios disponibles en el sistema")
     @ApiResponse(responseCode = "200", description = "Premios listados correctamente")

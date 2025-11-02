@@ -1,6 +1,13 @@
 package figuritas.album.album.service;
 
 import figuritas.album.album.repository.AlbumRepository;
+import figuritas.album.reward.model.Reward;
+import figuritas.album.reward.model.UserReward;
+import figuritas.album.reward.repository.RewardRepository;
+import figuritas.album.reward.repository.UserRewardRepository;
+import figuritas.album.reward.state.IObserver;
+import figuritas.album.reward.state.NoReclamado;
+import figuritas.album.reward.state.Reclamado;
 import figuritas.album.album.model.Album;
 import figuritas.album.sticker.model.Sticker;
 import figuritas.album.sticker.repository.StickerRepository;
@@ -23,9 +30,16 @@ public class AlbumService {
     UsuarioRepository usuarioRepository;
     @Autowired
     private AlbumRepository albumRepository;
+    private IObserver observer; 
 
     @Autowired
     private StickerRepository stickerRepository;
+    
+    @Autowired
+    private UserRewardRepository userRewardRepository;
+    @Autowired
+    private RewardRepository rewardRepository;
+
 
     public Album crearAlbum(Album album) {
         album.setTotalFiguritas(0);
@@ -64,7 +78,7 @@ public class AlbumService {
         }
         return userStickerRepository.findByUsuarioAndStickerIds(usuario, stickerIdDuplicados);
     }
-
+    // solo calcula el porcentaje de album completo 
     public double obtenerPorcentajeAlbumCompleto(Long usuarioId, Long albumId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + usuarioId));
@@ -107,5 +121,50 @@ public class AlbumService {
         return albumStickers.stream()
                 .filter(sticker -> !usuarioStickerIds.contains(sticker.getId()))
                 .toList();
+    }
+    
+
+    // Verifica si el album esta completo y crea reward + notificacion. 
+    @Transactional
+    public boolean verificarYCrearRewardSiCorresponde(Long usuarioId, Long albumId) {
+    Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+    Album album = albumRepository.findById(albumId)
+            .orElseThrow(() -> new EntityNotFoundException("Álbum no encontrado"));
+
+    long total = album.getTotalFiguritas();
+    long unicas = userStickerRepository.countByUserAndAlbum(usuario, album);
+
+    if (total > 0 && unicas == total) {
+        crearRewardYNotificar(usuario, album); 
+        return true;
+    }
+    return false;
+    }
+
+    @Transactional
+    private void crearRewardYNotificar(Usuario usuario, Album album) {
+
+        Reward reward = rewardRepository.findByAlbumId(album.getId())
+                .orElseGet(() -> {
+                    Reward r = new Reward();
+                    r.setAlbum(album);
+                    r.setTipo("ALBUM_COMPLETO"); // usa tu campo real (tipo/código)
+                    return rewardRepository.save(r);
+                });
+
+        boolean yaExiste = userRewardRepository.existsByUsuarioAndAlbum(usuario, album);
+        if (yaExiste) return;
+
+        UserReward nuevoUserReward = new UserReward();
+        nuevoUserReward.setUsuario(usuario);
+        nuevoUserReward.setAlbum(album);
+        nuevoUserReward.setReward(reward);
+        nuevoUserReward.cambiarEstado(new NoReclamado());
+        if(this.observer != null) {
+            this.observer.actualizar(nuevoUserReward);   
+        }     
+        userRewardRepository.save(nuevoUserReward);
+        
     }
 }
