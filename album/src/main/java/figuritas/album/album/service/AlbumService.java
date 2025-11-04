@@ -7,7 +7,6 @@ import figuritas.album.reward.repository.RewardRepository;
 import figuritas.album.reward.repository.UserRewardRepository;
 import figuritas.album.reward.state.IObserver;
 import figuritas.album.reward.state.NoReclamado;
-import figuritas.album.reward.state.Reclamado;
 import figuritas.album.album.model.Album;
 import figuritas.album.sticker.model.Sticker;
 import figuritas.album.sticker.repository.StickerRepository;
@@ -66,7 +65,6 @@ public class AlbumService {
         return albumRepository.findAll();
     }
 
-    @Transactional()
     public List<UserSticker> obtenerFiguritasRepetidas(Long userId) {
         Usuario usuario = usuarioRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + userId));
@@ -92,7 +90,6 @@ public class AlbumService {
         return ((double) figuritasUnicasUsuario / totalFiguritasAlbum) * 100;
     }
 
-    @Transactional()
     public List<Sticker> obtenerFiguritasFaltantes(Long usuarioId, Long albumId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + usuarioId));
@@ -143,7 +140,7 @@ public class AlbumService {
     }
 
     @Transactional
-    private void crearRewardYNotificar(Usuario usuario, Album album) {
+    public void crearRewardYNotificar(Usuario usuario, Album album) {
 
         Reward reward = rewardRepository.findByAlbumId(album.getId())
                 .orElseGet(() -> {
