@@ -1,5 +1,6 @@
 package figuritas.album.simulacion.controller;
 
+import figuritas.album.response.MessageResponse;
 import figuritas.album.userSticker.model.UserSticker;
 import figuritas.album.simulacion.service.SimulacionCompraService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,14 +26,14 @@ public class SimulacionController {
     )
     @ApiResponse(responseCode = "200", description = "Paquete generado correctamente")
     @PostMapping("/comprar/{albumId}")
-    public ResponseEntity<String> simularCompra(
+    public ResponseEntity<MessageResponse> simularCompra(
             @RequestParam Long userId,
             @PathVariable Long albumId) {
 
         List<UserSticker> paquete = simulacionCompraService.comprarPaquete(userId, albumId);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body("Compra simulada correctamente. El usuario con ID " + userId +
-                        " recibió " + paquete.size() + " figuritas del álbum con ID " + albumId + ".");
+                .body(MessageResponse.success("Compra simulada correctamente. El usuario con ID " + userId +
+                        " recibió " + paquete.size() + " figuritas del álbum con ID " + albumId + "."));
     }
 }

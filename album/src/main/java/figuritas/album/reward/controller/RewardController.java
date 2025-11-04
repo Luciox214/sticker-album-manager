@@ -1,4 +1,6 @@
 package figuritas.album.reward.controller;
+import figuritas.album.response.MessageResponse;
+import figuritas.album.response.ResponseApi;
 import figuritas.album.reward.model.Reward;
 import figuritas.album.reward.model.UserReward;
 import figuritas.album.reward.service.RewardService;
@@ -21,11 +23,11 @@ public class RewardController {
     @Operation(summary = "Crear un nuevo premio", description = "Registra un nuevo premio en el sistema")
     @ApiResponse(responseCode = "201", description = "Premio creado exitosamente")
     @PostMapping
-    public ResponseEntity<String> crearPremio(@RequestBody Reward reward) {
+    public ResponseEntity<MessageResponse> crearPremio(@RequestBody Reward reward) {
         Reward nuevo = rewardService.crearPremio(reward);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body("Premio creado con éxito: " + nuevo.getTipo());
+                .body(MessageResponse.success("Premio creado con éxito: " + nuevo.getTipo()));
     }
 
     /* 
@@ -44,14 +46,25 @@ public class RewardController {
     @Operation(summary = "Listar todos los premios", description = "Devuelve la lista de premios disponibles en el sistema")
     @ApiResponse(responseCode = "200", description = "Premios listados correctamente")
     @GetMapping
-    public ResponseEntity<Iterable<Reward>> listarPremios() {
-        return ResponseEntity.ok(rewardService.listarPremios());
+    public ResponseEntity<ResponseApi<Iterable<Reward>>> listarPremios() {
+        Iterable<Reward> premios= rewardService.listarPremios();
+        ResponseApi<Iterable<Reward>> response = ResponseApi.success(
+                "Listado de premios obtenido correctamente",
+                premios
+        );
+        return ResponseEntity.ok(response);
+
     }
 
     @Operation(summary = "Listar premios reclamados de un usuario", description = "Devuelve todos los premios que un usuario ha reclamado")
     @ApiResponse(responseCode = "200", description = "Premios reclamados obtenidos correctamente")
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<Iterable<UserReward>> listarPremiosReclamados(@PathVariable Long usuarioId) {
-        return ResponseEntity.ok(rewardService.listarPremiosReclamados(usuarioId));
+    public ResponseEntity<ResponseApi<Iterable<UserReward>>> listarPremiosReclamados(@PathVariable Long usuarioId) {
+        Iterable<UserReward> premiosReclamados = rewardService.listarPremiosReclamados(usuarioId);
+        ResponseApi<Iterable<UserReward>> response = ResponseApi.success(
+                "Listado de premios reclamados obtenido correctamente",
+                premiosReclamados
+        );
+        return ResponseEntity.ok(response);
     }
 }
