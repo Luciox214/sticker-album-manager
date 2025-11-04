@@ -1,10 +1,13 @@
 package figuritas.album.usuario.controller;
+import figuritas.album.response.MessageResponse;
+import figuritas.album.response.ResponseApi;
 import figuritas.album.usuario.model.Usuario;
 import figuritas.album.usuario.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -19,22 +22,31 @@ public class UsuarioController {
     @Operation(summary = "Crear un nuevo usuario", description = "Registra un nuevo usuario en el sistema")
     @ApiResponse(responseCode = "200", description = "Usuario creado exitosamente")
     @PostMapping
-    public void crearUsuario(@RequestBody Usuario usuario) {
+    public ResponseEntity<MessageResponse> crearUsuario(@RequestBody Usuario usuario) {
         usuarioService.crearUsuario(usuario);
+        return ResponseEntity
+                .ok()
+                .body(MessageResponse.success("Usuario creado con éxito: " + usuario.getUsername()));
     }
 
     @Operation(summary = "Listar usuarios", description = "Devuelve la lista completa de usuarios registrados")
     @ApiResponse(responseCode = "200", description = "Usuarios obtenidos exitosamente")
     @GetMapping
-    public List<Usuario> obtenerUsuarios() {
-        return usuarioService.obtenerUsuarios();
+    public ResponseEntity<ResponseApi<List<Usuario>>> obtenerUsuarios() {
+        List<Usuario> usuarios = usuarioService.obtenerUsuarios();
+        ResponseApi<List<Usuario>> response = ResponseApi.success(
+                "Listado de usuarios obtenido correctamente",
+                usuarios
+        );
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Eliminar un usuario", description = "Elimina un usuario por su ID")
     @ApiResponse(responseCode = "200", description = "Usuario eliminado exitosamente")
     @DeleteMapping("/{id}")
-    public void eliminarUsuario(@PathVariable Long id) {
+    public ResponseEntity<MessageResponse> eliminarUsuario(@PathVariable Long id) {
         usuarioService.eliminarUsuario(id);
+        return ResponseEntity.ok(MessageResponse.success("Usuario eliminado correctamente con ID: " + id));
     }
 
 }
