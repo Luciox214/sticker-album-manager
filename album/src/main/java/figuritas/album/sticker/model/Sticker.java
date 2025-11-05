@@ -16,8 +16,11 @@ public class Sticker {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String nombre;
+    private String imageUrl;
+    @Enumerated(EnumType.STRING)
+    private Rareza rareza;
+
 
     @ManyToOne
     @JsonBackReference
