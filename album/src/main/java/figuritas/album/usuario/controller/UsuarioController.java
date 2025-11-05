@@ -1,6 +1,7 @@
 package figuritas.album.usuario.controller;
 import figuritas.album.response.MessageResponse;
 import figuritas.album.response.ResponseApi;
+import figuritas.album.usuario.UsuarioDTO;
 import figuritas.album.usuario.model.Usuario;
 import figuritas.album.usuario.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,9 +33,9 @@ public class UsuarioController {
     @Operation(summary = "Listar usuarios", description = "Devuelve la lista completa de usuarios registrados")
     @ApiResponse(responseCode = "200", description = "Usuarios obtenidos exitosamente")
     @GetMapping
-    public ResponseEntity<ResponseApi<List<Usuario>>> obtenerUsuarios() {
-        List<Usuario> usuarios = usuarioService.obtenerUsuarios();
-        ResponseApi<List<Usuario>> response = ResponseApi.success(
+    public ResponseEntity<ResponseApi<List<UsuarioDTO>>> obtenerUsuarios() {
+        List<UsuarioDTO> usuarios = usuarioService.obtenerUsuarios();
+        ResponseApi<List<UsuarioDTO>> response = ResponseApi.success(
                 "Listado de usuarios obtenido correctamente",
                 usuarios
         );
