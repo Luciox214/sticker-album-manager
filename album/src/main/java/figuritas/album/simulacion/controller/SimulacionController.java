@@ -25,10 +25,10 @@ public class SimulacionController {
             description = "Devuelve 5 figuritas aleatorias del álbum seleccionado para el usuario indicado"
     )
     @ApiResponse(responseCode = "200", description = "Paquete generado correctamente")
-    @PostMapping("/comprar/{albumId}")
+    @PostMapping("/comprar")
     public ResponseEntity<MessageResponse> simularCompra(
             @RequestParam Long userId,
-            @PathVariable Long albumId) {
+            @RequestParam Long albumId) {
 
         List<UserSticker> paquete = simulacionCompraService.comprarPaquete(userId, albumId);
         return ResponseEntity

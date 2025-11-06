@@ -41,7 +41,7 @@ public class UserReward {
     @Transient
     private IEstadoUserReward estado;
 
-    @Column(name = "claimed_at", columnDefinition = "DATETIME")
+    @Column(name = "claimed_at")
     private LocalDateTime claimedAt;
 
     @PostLoad

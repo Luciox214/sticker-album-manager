@@ -2,6 +2,7 @@ package figuritas.album.reward.service;
 import figuritas.album.album.model.Album;
 import figuritas.album.album.repository.AlbumRepository;
 import figuritas.album.reward.model.Reward;
+import figuritas.album.reward.model.RewardDTO;
 import figuritas.album.reward.model.Sujeto;
 import figuritas.album.reward.model.UserReward;
 import figuritas.album.reward.repository.RewardRepository;
@@ -16,6 +17,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.stream.Collectors;
 
 @Service
 public class RewardService {
@@ -26,25 +28,27 @@ public class RewardService {
     @Autowired
     UserRewardRepository userRewardRepository;
     @Autowired
-    StickerRepository stickerRepository;
-    @Autowired
-    UserStickerRepository userStickerRepository;
-    @Autowired
     RewardRepository rewardRepository;
     @Autowired
     NotificationService notificationService;
-    public Reward crearPremio(Reward reward) {
-        Long albumId = reward.getAlbum().getId();
+    @Autowired
+    StickerRepository stickerRepository;
+    @Autowired
+    UserStickerRepository userStickerRepository;
+
+    public Reward crearPremio(Long albumId, String tipo) {
         Album album = albumRepository.findById(albumId)
                 .orElseThrow(() -> new EntityNotFoundException("Álbum no encontrado con ID: " + albumId));
         if (rewardRepository.existsByAlbumId(albumId)) {
             throw new IllegalStateException("El álbum ya tiene un premio asociado.");
         }
+        Reward reward = new Reward();
         reward.setAlbum(album);
+        reward.setTipo(tipo);
         return rewardRepository.save(reward);
     }
 
-    /* 
+
     @Transactional
     public UserReward reclamarPremio(Long usuarioId, Long albumId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
@@ -58,7 +62,9 @@ public class RewardService {
             throw new IllegalStateException("El usuario ya ha reclamado el premio para este álbum.");
         }
         long totalFiguritasAlbum = stickerRepository.countByAlbum(album);
-        long totalFiguritasUsuario = userStickerRepository.countByUserAndAlbum(usuario, album);
+        long totalFiguritasUsuario = userStickerRepository.countByUsuarioAndStickerAlbum(usuario, album);
+        System.out.println("Total figuritas en el álbum: " + totalFiguritasAlbum);
+        System.out.println("Total figuritas del usuario en el álbum: " + totalFiguritasUsuario);
 
         if (totalFiguritasAlbum == 0 || totalFiguritasAlbum > totalFiguritasUsuario) {
             throw new IllegalStateException("El álbum aún no está completo. Faltan figuritas.");
@@ -75,10 +81,18 @@ public class RewardService {
         sujeto.notificarObservadores(newUserReward);
         newUserReward.cambiarEstado(new Reclamado());
         return userRewardRepository.save(newUserReward);
-    }*/
 
-    public Iterable<Reward> listarPremios() {
-        return rewardRepository.findAll();
+    }
+    public Iterable<RewardDTO> listarPremios() {
+
+        return rewardRepository.findAll()
+                .stream()
+                .map(reward -> new RewardDTO(
+                        reward.getId(),
+                        reward.getAlbum().getId(),
+                        reward.getAlbum().getTitulo(),
+                        reward.getTipo()
+                )).collect(Collectors.toList());
     }
 
     public Iterable<UserReward> listarPremiosReclamados(Long usuarioId) {

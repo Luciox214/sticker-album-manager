@@ -19,5 +19,5 @@ public interface UserStickerRepository extends JpaRepository<UserSticker, Long> 
 
     @Query("SELECT us FROM UserSticker us WHERE us.usuario = :usuario AND us.sticker.id IN :stickerIds")
     List<UserSticker> findByUsuarioAndStickerIds(@Param("usuario") Usuario usuario, @Param("stickerIds") List<Long> stickerIds);
-
+    long countByUsuarioAndStickerAlbum(Usuario usuario, Album album);
 }

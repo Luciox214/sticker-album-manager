@@ -2,6 +2,7 @@ package figuritas.album.reward.controller;
 import figuritas.album.response.MessageResponse;
 import figuritas.album.response.ResponseApi;
 import figuritas.album.reward.model.Reward;
+import figuritas.album.reward.model.RewardDTO;
 import figuritas.album.reward.model.UserReward;
 import figuritas.album.reward.service.RewardService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,14 +24,13 @@ public class RewardController {
     @Operation(summary = "Crear un nuevo premio", description = "Registra un nuevo premio en el sistema")
     @ApiResponse(responseCode = "201", description = "Premio creado exitosamente")
     @PostMapping
-    public ResponseEntity<MessageResponse> crearPremio(@RequestBody Reward reward) {
-        Reward nuevo = rewardService.crearPremio(reward);
+    public ResponseEntity<MessageResponse> crearPremio(@RequestParam Long albumId, @RequestParam String tipo) {
+        Reward nuevo = rewardService.crearPremio(albumId,tipo);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(MessageResponse.success("Premio creado con éxito: " + nuevo.getTipo()));
     }
 
-    /* 
     @Operation(summary = "Reclamar premio", description = "Permite a un usuario reclamar un premio asociado a su álbum")
     @ApiResponse(responseCode = "200", description = "Premio reclamado exitosamente")
     @PostMapping("/reclamar")
@@ -41,14 +41,14 @@ public class RewardController {
         UserReward reclamado = rewardService.reclamarPremio(usuarioId, albumId);
         return ResponseEntity.ok("Premio '" + reclamado.getReward().getTipo()    +
                 "' reclamado correctamente por el usuario con ID: " + usuarioId);
-    }*/
+    }
 
     @Operation(summary = "Listar todos los premios", description = "Devuelve la lista de premios disponibles en el sistema")
     @ApiResponse(responseCode = "200", description = "Premios listados correctamente")
     @GetMapping
-    public ResponseEntity<ResponseApi<Iterable<Reward>>> listarPremios() {
-        Iterable<Reward> premios= rewardService.listarPremios();
-        ResponseApi<Iterable<Reward>> response = ResponseApi.success(
+    public ResponseEntity<ResponseApi<Iterable<RewardDTO>>> listarPremios() {
+        Iterable<RewardDTO> premios= rewardService.listarPremios();
+        ResponseApi<Iterable<RewardDTO>> response = ResponseApi.success(
                 "Listado de premios obtenido correctamente",
                 premios
         );
