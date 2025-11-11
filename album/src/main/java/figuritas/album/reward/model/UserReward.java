@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "user_rewards")
+@Table(name = "user_rewards",
+    uniqueConstraints = @UniqueConstraint(name = "uk_user_rewards_user_album", columnNames = {"user_id", "album_id"}))
 public class UserReward {
 
     @Id

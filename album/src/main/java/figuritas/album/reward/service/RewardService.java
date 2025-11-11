@@ -16,7 +16,10 @@ import figuritas.album.usuario.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,9 +40,10 @@ public class RewardService {
     UserStickerRepository userStickerRepository;
 
     public Reward crearPremio(Long albumId, String tipo) {
-        Album album = albumRepository.findById(albumId)
+        Long safeAlbumId = Objects.requireNonNull(albumId, "albumId no puede ser nulo");
+        Album album = albumRepository.findById(safeAlbumId)
                 .orElseThrow(() -> new EntityNotFoundException("Álbum no encontrado con ID: " + albumId));
-        if (rewardRepository.existsByAlbumId(albumId)) {
+        if (rewardRepository.existsByAlbumId(safeAlbumId)) {
             throw new IllegalStateException("El álbum ya tiene un premio asociado.");
         }
         Reward reward = new Reward();
@@ -51,24 +55,28 @@ public class RewardService {
 
     @Transactional
     public UserReward reclamarPremio(Long usuarioId, Long albumId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
+        Long safeUsuarioId = Objects.requireNonNull(usuarioId, "usuarioId no puede ser nulo");
+        Long safeAlbumId = Objects.requireNonNull(albumId, "albumId no puede ser nulo");
+
+        Usuario usuario = usuarioRepository.findById(safeUsuarioId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + usuarioId));
-        Album album = albumRepository.findById(albumId)
+        Album album = albumRepository.findById(safeAlbumId)
                 .orElseThrow(() -> new EntityNotFoundException("Álbum no encontrado con ID: " + albumId));
-        Reward reward = rewardRepository.findByAlbumId(albumId)
+        Reward reward = rewardRepository.findByAlbumId(safeAlbumId)
                 .orElseThrow(() -> new EntityNotFoundException("No se encontró un premio para el álbum con ID: " + albumId));
 
-        if (userRewardRepository.existsByUsuarioAndAlbum(usuario, album)) {
-            throw new IllegalStateException("El usuario ya ha reclamado el premio para este álbum.");
-        }
-        long totalFiguritasAlbum = stickerRepository.countByAlbum(album);
-        long totalFiguritasUsuario = userStickerRepository.countByUsuarioAndStickerAlbum(usuario, album);
-        System.out.println("Total figuritas en el álbum: " + totalFiguritasAlbum);
-        System.out.println("Total figuritas del usuario en el álbum: " + totalFiguritasUsuario);
+        userRewardRepository.findByUsuarioAndAlbumForUpdate(usuario, album)
+                .ifPresent(existing -> {
+                    throw new IllegalStateException("El usuario ya ha reclamado el premio para este álbum.");
+                });
 
-        if (totalFiguritasAlbum == 0 || totalFiguritasAlbum > totalFiguritasUsuario) {
+        long totalFiguritasAlbum = stickerRepository.countByAlbum(album);
+        long figuritasUnicasUsuario = userStickerRepository.countByUserAndAlbum(usuario, album);
+
+        if (totalFiguritasAlbum == 0 || figuritasUnicasUsuario < totalFiguritasAlbum) {
             throw new IllegalStateException("El álbum aún no está completo. Faltan figuritas.");
         }
+
         UserReward newUserReward = new UserReward();
         newUserReward.setUsuario(usuario);
         newUserReward.setAlbum(album);
@@ -80,7 +88,12 @@ public class RewardService {
         sujeto.agregarObservador(notificationService);
         sujeto.notificarObservadores(newUserReward);
         newUserReward.cambiarEstado(new Reclamado());
-        return userRewardRepository.save(newUserReward);
+
+        try {
+            return userRewardRepository.saveAndFlush(newUserReward);
+        } catch (DataIntegrityViolationException ex) {
+            throw new IllegalStateException("El usuario ya ha reclamado el premio para este álbum.", ex);
+        }
 
     }
     public Iterable<RewardDTO> listarPremios() {
@@ -96,7 +109,7 @@ public class RewardService {
     }
 
     public Iterable<UserReward> listarPremiosReclamados(Long usuarioId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
+        Usuario usuario = usuarioRepository.findById(Objects.requireNonNull(usuarioId, "usuarioId no puede ser nulo"))
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + usuarioId));
         return userRewardRepository.findByUsuario(usuario);
     }

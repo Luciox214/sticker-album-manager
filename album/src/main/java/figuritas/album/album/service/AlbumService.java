@@ -1,11 +1,14 @@
 package figuritas.album.album.service;
 
 import figuritas.album.album.model.AlbumDTO;
+import figuritas.album.album.model.CollectionProgressDTO;
+import figuritas.album.album.model.CollectionRarityDTO;
 import figuritas.album.album.repository.AlbumRepository;
 import figuritas.album.album.model.Album;
 import figuritas.album.sticker.model.Sticker;
 import figuritas.album.sticker.repository.StickerRepository;
 import figuritas.album.userSticker.model.UserSticker;
+import figuritas.album.userSticker.model.UserStickerEstado;
 import figuritas.album.userSticker.repository.UserStickerRepository;
 import figuritas.album.usuario.model.Usuario;
 import figuritas.album.usuario.repository.UsuarioRepository;
@@ -13,7 +16,9 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,7 +41,7 @@ public class AlbumService {
     }
 
     public Album cargarAlbum(Long albumId, List<Sticker> stickers) {
-        Album album = albumRepository.findById(albumId)
+        Album album = albumRepository.findById(Objects.requireNonNull(albumId, "albumId no puede ser nulo"))
                 .orElseThrow(() -> new IllegalArgumentException("Álbum no encontrado con id: " + albumId));
         for (Sticker sticker : stickers) {
             sticker.setAlbum(album);
@@ -48,7 +53,7 @@ public class AlbumService {
     }
 
     public void borrarAlbum(Long id) {
-        albumRepository.deleteById(id);
+        albumRepository.deleteById(Objects.requireNonNull(id, "id no puede ser nulo"));
     }
 
     public List<AlbumDTO> obtenerAlbums() {
@@ -63,52 +68,51 @@ public class AlbumService {
                 ).collect(Collectors.toList());
     }
 
-    public List<UserSticker> obtenerFiguritasRepetidas(Long userId) {
-        Usuario usuario = usuarioRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + userId));
+    public List<UserSticker> obtenerFiguritasRepetidas(Long usuarioId, Long albumId) {
+        Usuario usuario = usuarioRepository.findById(Objects.requireNonNull(usuarioId, "usuarioId no puede ser nulo"))
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + usuarioId));
+        Album album = albumRepository.findById(Objects.requireNonNull(albumId, "albumId no puede ser nulo"))
+                .orElseThrow(() -> new EntityNotFoundException("Álbum no encontrado con ID: " + albumId));
 
-        List<Long> stickerIdDuplicados = userStickerRepository.findDuplicateStickerIdsByUsuario(usuario);
+        List<Long> stickerIdDuplicados = userStickerRepository
+                .findDuplicateStickerIdsByUsuarioAndAlbumAndEstado(usuario, album, UserStickerEstado.EN_COLECCION);
 
         if (stickerIdDuplicados.isEmpty()) {
             return Collections.emptyList();
         }
-        return userStickerRepository.findByUsuarioAndStickerIds(usuario, stickerIdDuplicados);
+
+        return userStickerRepository
+                .findByUsuarioAndStickerIdsAndEstado(usuario, stickerIdDuplicados, UserStickerEstado.EN_COLECCION);
     }
-    // solo calcula el porcentaje de album completo 
-    public double obtenerPorcentajeAlbumCompleto(Long usuarioId, Long albumId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
+    public CollectionProgressDTO obtenerProgresoAlbum(Long usuarioId, Long albumId) {
+        Usuario usuario = usuarioRepository.findById(Objects.requireNonNull(usuarioId, "usuarioId no puede ser nulo"))
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + usuarioId));
-        Album album = albumRepository.findById(albumId)
+        Album album = albumRepository.findById(Objects.requireNonNull(albumId, "albumId no puede ser nulo"))
                 .orElseThrow(() -> new EntityNotFoundException("Álbum no encontrado con ID: " + albumId));
-        long totalFiguritasAlbum = album.getTotalFiguritas();
-        if (totalFiguritasAlbum == 0) {
-            return 0.0;
-        }
+
+        long totalFiguritasAlbum = stickerRepository.countByAlbum(album);
         long figuritasUnicasUsuario = userStickerRepository.countByUserAndAlbum(usuario, album);
-        return ((double) figuritasUnicasUsuario / totalFiguritasAlbum) * 100;
+
+        double porcentaje = totalFiguritasAlbum == 0
+                ? 0.0
+                : ((double) figuritasUnicasUsuario / totalFiguritasAlbum) * 100;
+
+        return new CollectionProgressDTO(album.getId(), usuario.getId(), totalFiguritasAlbum, figuritasUnicasUsuario, porcentaje);
     }
 
     public List<Sticker> obtenerFiguritasFaltantes(Long usuarioId, Long albumId) {
-        Usuario usuario = usuarioRepository.findById(usuarioId)
+        Usuario usuario = usuarioRepository.findById(Objects.requireNonNull(usuarioId, "usuarioId no puede ser nulo"))
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + usuarioId));
-        albumRepository.findById(albumId)
+        Album album = albumRepository.findById(Objects.requireNonNull(albumId, "albumId no puede ser nulo"))
                 .orElseThrow(() -> new EntityNotFoundException("Álbum no encontrado con ID: " + albumId));
 
         List<Sticker> albumStickers = stickerRepository.findByAlbumId(albumId);
 
-        List<Long> stickerIds = albumStickers.stream()
-                .map(Sticker::getId)
-                .toList();
-
-        if (stickerIds.isEmpty()) {
+        if (albumStickers.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<UserSticker> usuarioStickers = userStickerRepository.findByUsuarioAndStickerIds(
-                usuario,
-                stickerIds);
-
-        List<Long> usuarioStickerIds = usuarioStickers.stream()
+        List<Long> usuarioStickerIds = userStickerRepository.findByUsuarioAndAlbum(usuario, album).stream()
                 .map(us -> us.getSticker().getId())
                 .distinct()
                 .toList();
@@ -118,8 +122,33 @@ public class AlbumService {
                 .toList();
     }
 
+    public List<CollectionRarityDTO> obtenerColeccionPorRareza(Long albumId, Long usuarioId) {
+        Usuario usuario = usuarioRepository.findById(Objects.requireNonNull(usuarioId, "usuarioId no puede ser nulo"))
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado con ID: " + usuarioId));
+        Album album = albumRepository.findById(Objects.requireNonNull(albumId, "albumId no puede ser nulo"))
+                .orElseThrow(() -> new EntityNotFoundException("Álbum no encontrado con ID: " + albumId));
+
+        List<UserSticker> userStickers = userStickerRepository.findByUsuarioAndAlbum(usuario, album);
+
+        return userStickers.stream()
+                .collect(Collectors.groupingBy(userSticker -> userSticker.getSticker().getRareza()))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    long total = entry.getValue().size();
+                    long unicas = entry.getValue().stream()
+                            .map(userSticker -> userSticker.getSticker().getId())
+                            .distinct()
+                            .count();
+                    long duplicadas = total - unicas;
+                    return new CollectionRarityDTO(entry.getKey(), total, unicas, duplicadas);
+                })
+                .sorted(Comparator.comparing(dto -> dto.getRareza().ordinal()))
+                .toList();
+    }
+
     public Album obtenerAlbumPorId(Long id) {
-        return albumRepository.findById(id)
+        return albumRepository.findById(Objects.requireNonNull(id, "id no puede ser nulo"))
                 .orElseThrow(() -> new EntityNotFoundException("Album no encontrado"));
 
     }

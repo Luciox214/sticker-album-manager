@@ -1,7 +1,7 @@
 package figuritas.album.simulacion.service;
-import figuritas.album.album.model.Album;
 import figuritas.album.sticker.model.Sticker;
 import figuritas.album.userSticker.model.UserSticker;
+import figuritas.album.userSticker.model.UserStickerEstado;
 import figuritas.album.usuario.model.Usuario;
 import figuritas.album.album.repository.AlbumRepository;
 import figuritas.album.sticker.repository.StickerRepository;
@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
+import java.util.Objects;
 
 @Service
 public class SimulacionCompraService {
@@ -25,12 +26,15 @@ public class SimulacionCompraService {
 
     @Transactional
     public List<UserSticker> comprarPaquete(Long userId, Long albumId) {
-        Usuario usuario = usuarioRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-        Album album = albumRepository.findById(albumId)
-                .orElseThrow(() -> new IllegalArgumentException("Álbum no encontrado"));
+    Long safeUserId = Objects.requireNonNull(userId, "userId no puede ser nulo");
+    Long safeAlbumId = Objects.requireNonNull(albumId, "albumId no puede ser nulo");
 
-        List<Sticker> figuritasDisponibles = stickerRepository.findByAlbumId(albumId);
+    Usuario usuario = usuarioRepository.findById(safeUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+    albumRepository.findById(safeAlbumId)
+        .orElseThrow(() -> new IllegalArgumentException("Álbum no encontrado"));
+
+    List<Sticker> figuritasDisponibles = stickerRepository.findByAlbumId(safeAlbumId);
         if (figuritasDisponibles.isEmpty()) {
             throw new IllegalStateException("No hay figuritas disponibles para este álbum");
         }
@@ -45,11 +49,12 @@ public class SimulacionCompraService {
                     UserSticker us = new UserSticker();
                     us.setUsuario(usuario);
                     us.setSticker(sticker);
+                    us.setEstado(UserStickerEstado.EN_COLECCION);
                     return us;
                 })
                 .toList();
 
-        return userStickerRepository.saveAll(obtenidas);
+    return userStickerRepository.saveAll(Objects.requireNonNull(obtenidas, "La lista de figuritas obtenidas no puede ser nula"));
     }
 
 }

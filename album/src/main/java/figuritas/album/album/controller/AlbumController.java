@@ -6,7 +6,6 @@ import figuritas.album.album.service.AlbumService;
 import figuritas.album.response.MessageResponse;
 import figuritas.album.response.ResponseApi;
 import figuritas.album.sticker.model.Sticker;
-import figuritas.album.userSticker.model.UserSticker;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -70,37 +69,4 @@ public class AlbumController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Obtener figuritas repetidas del usuario", description = "Devuelve la lista de figuritas repetidas de un usuario en un álbum")
-    @ApiResponse(responseCode = "200", description = "Figuritas repetidas obtenidas correctamente")
-    @GetMapping("/repetidas")
-    public ResponseEntity<ResponseApi<List<UserSticker>>> obtenerFiguritasRepetidas(
-            @RequestParam Long userId) {
-        List<UserSticker> repetidas = albumService.obtenerFiguritasRepetidas(userId);
-        ResponseApi<List<UserSticker>> response= ResponseApi.success("Figuritas repetidas obtenidas correctamente", repetidas);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(summary = "Porcentaje de álbum completo", description = "Calcula el porcentaje de figuritas completadas en el álbum del usuario")
-    @ApiResponse(responseCode = "200", description = "Porcentaje obtenido exitosamente")
-    @GetMapping("/porcentaje")
-    public ResponseEntity<MessageResponse> obtenerPorcentajeAlbumCompleto(
-            @RequestParam Long userId,
-            @RequestParam Long albumId) {
-
-        double porcentaje = albumService.obtenerPorcentajeAlbumCompleto(userId, albumId);
-        return ResponseEntity
-                .ok(MessageResponse.success("El álbum " + albumId + " del usuario " + userId + " está completo en un " + porcentaje + "%"));
-    }
-
-    @Operation(summary = "Obtener figuritas faltantes del usuario", description = "Devuelve la lista de figuritas que le faltan al usuario para completar el álbum")
-    @ApiResponse(responseCode = "200", description = "Figuritas faltantes obtenidas correctamente")
-    @GetMapping("/faltantes")
-    public ResponseEntity<ResponseApi<List<Sticker>>> obtenerFiguritasFaltantes(
-            @RequestParam Long userId,
-            @RequestParam Long albumId) {
-        List<Sticker> faltantes = albumService.obtenerFiguritasFaltantes(userId, albumId);
-        ResponseApi<List<Sticker>> response = ResponseApi.success("Figuritas faltantes obtenidas correctamente", faltantes);
-
-        return ResponseEntity.ok(response);
-    }
 }
