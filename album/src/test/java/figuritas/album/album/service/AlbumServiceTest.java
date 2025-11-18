@@ -145,7 +145,6 @@ class AlbumServiceTest {
         UserSticker userSticker = new UserSticker();
         userSticker.setUsuario(usuario);
         userSticker.cambiarEstado(new EnColeccion());
-        userSticker.ponerEnColeccion();
         userSticker.setCreatedAt(OffsetDateTime.now());
 
         Sticker sticker = buildSticker(stickerId, rareza);

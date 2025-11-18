@@ -52,7 +52,6 @@ public class SimulacionCompraService {
                     us.setUsuario(usuario);
                     us.setSticker(sticker);
                     us.cambiarEstado(new EnColeccion());
-                    us.ponerEnColeccion();
                     return us;
                 })
                 .toList();

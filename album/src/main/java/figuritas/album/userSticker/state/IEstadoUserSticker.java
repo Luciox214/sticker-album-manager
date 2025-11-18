@@ -4,9 +4,9 @@ import figuritas.album.userSticker.model.UserSticker;
 import figuritas.album.userSticker.model.UserStickerEstado;
 
 public interface IEstadoUserSticker {
-    void ponerEnTrade(UserSticker context);
+    void enTrade(UserSticker context);
 
-    void ponerEnColeccion(UserSticker context);
+    void enColeccion(UserSticker context);
 
     UserStickerEstado getEstadoEnum();
 }

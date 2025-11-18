@@ -5,14 +5,13 @@ import figuritas.album.userSticker.model.UserStickerEstado;
 
 public class EnColeccion implements IEstadoUserSticker {
     @Override
-    public void ponerEnTrade(UserSticker context) {
-        context.cambiarEstado(new EnTrade());
+    public void enTrade(UserSticker context) {
         System.out.println("Figurita puesta en intercambio");
     }
 
     @Override
-    public void ponerEnColeccion(UserSticker context) {
-        System.out.println("La figurita ya está en la colección. No se requiere acción.");
+    public void enColeccion(UserSticker context) {
+        throw new IllegalStateException("La figurita ya está en la colección.");
     }
 
     @Override

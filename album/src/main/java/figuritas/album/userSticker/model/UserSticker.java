@@ -54,14 +54,13 @@ public class UserSticker {
         }
     }
 
-    public void ponerEnTrade() {
-        this.estado.ponerEnTrade(this);
+    @PrePersist
+    private void prePersist() {
+        if (this.estadoDB == null) {
+            this.cambiarEstado(new EnColeccion());
+        }
     }
-
-    public void ponerEnColeccion() {
-        this.estado.ponerEnColeccion(this);
-    }
-
+    
     public void cambiarEstado(IEstadoUserSticker nuevoEstado) {
         this.estado = nuevoEstado;
         this.estadoDB = nuevoEstado.getEstadoEnum();
