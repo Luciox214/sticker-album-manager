@@ -66,14 +66,4 @@ public class UserSticker {
         this.estado = nuevoEstado;
         this.estadoDB = nuevoEstado.getEstadoEnum();
     }
-
-    // @PrePersist
-    // private void prePersist() {
-    //     if (estadoDB == null) {
-    //         estadoDB = UserStickerEstado.EN_COLECCION;
-    //     }
-    //     if (estado == null) {
-    //         inicializarEstado();
-    //     }
-    // }
 }

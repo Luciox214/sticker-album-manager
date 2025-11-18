@@ -10,6 +10,7 @@ import figuritas.album.sticker.repository.StickerRepository;
 import figuritas.album.userSticker.model.UserSticker;
 import figuritas.album.userSticker.model.UserStickerEstado;
 import figuritas.album.userSticker.repository.UserStickerRepository;
+import figuritas.album.userSticker.state.EnColeccion;
 import figuritas.album.usuario.model.Usuario;
 import figuritas.album.usuario.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -143,6 +144,7 @@ class AlbumServiceTest {
     private UserSticker buildUserSticker(Long stickerId, Rareza rareza) {
         UserSticker userSticker = new UserSticker();
         userSticker.setUsuario(usuario);
+        userSticker.cambiarEstado(new EnColeccion());
         userSticker.ponerEnColeccion();
         userSticker.setCreatedAt(OffsetDateTime.now());
 

@@ -7,6 +7,7 @@ import figuritas.album.usuario.model.Usuario;
 import figuritas.album.album.repository.AlbumRepository;
 import figuritas.album.sticker.repository.StickerRepository;
 import figuritas.album.userSticker.repository.UserStickerRepository;
+import figuritas.album.userSticker.state.EnColeccion;
 import figuritas.album.usuario.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,11 +51,7 @@ public class SimulacionCompraService {
                     UserSticker us = new UserSticker();
                     us.setUsuario(usuario);
                     us.setSticker(sticker);
-                    // Se establece el estado usando el enum para persistencia
-                    // El patrón State se inicializará automáticamente con @PostLoad
-                    us.setEstadoDB(UserStickerEstado.EN_COLECCION);
-                    // Utiliza ponerEnColeccion para asegurar que la figurita esté correctamente
-                    // inicializada en la colección mediante el patrón State
+                    us.cambiarEstado(new EnColeccion());
                     us.ponerEnColeccion();
                     return us;
                 })
