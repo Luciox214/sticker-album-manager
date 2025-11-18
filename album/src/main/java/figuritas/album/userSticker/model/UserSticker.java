@@ -1,7 +1,11 @@
 package figuritas.album.userSticker.model;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import figuritas.album.sticker.model.Sticker;
+import figuritas.album.userSticker.state.EnColeccion;
+import figuritas.album.userSticker.state.EnTrade;
+import figuritas.album.userSticker.state.IEstadoUserSticker;
 import figuritas.album.usuario.model.Usuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,7 +19,6 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-
 public class UserSticker {
     @Id
     @JsonIgnore
@@ -33,17 +36,44 @@ public class UserSticker {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false)
-    private UserStickerEstado estado;
+    private UserStickerEstado estadoDB;
+
+    @Transient
+    private IEstadoUserSticker estado;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    @PrePersist
-    private void prePersist() {
-        if (estado == null) {
-            estado = UserStickerEstado.EN_COLECCION;
+    @PostLoad
+    private void inicializarEstado() {
+        if (estadoDB == UserStickerEstado.EN_TRADE) {
+            this.estado = new EnTrade();
+        } else {
+            this.estado = new EnColeccion();
         }
     }
 
+    public void ponerEnTrade() {
+        this.estado.ponerEnTrade(this);
+    }
+
+    public void ponerEnColeccion() {
+        this.estado.ponerEnColeccion(this);
+    }
+
+    public void cambiarEstado(IEstadoUserSticker nuevoEstado) {
+        this.estado = nuevoEstado;
+        this.estadoDB = nuevoEstado.getEstadoEnum();
+    }
+
+    // @PrePersist
+    // private void prePersist() {
+    //     if (estadoDB == null) {
+    //         estadoDB = UserStickerEstado.EN_COLECCION;
+    //     }
+    //     if (estado == null) {
+    //         inicializarEstado();
+    //     }
+    // }
 }

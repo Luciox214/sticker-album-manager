@@ -15,12 +15,12 @@ import java.util.List;
 public interface UserStickerRepository extends JpaRepository<UserSticker, Long> {
     @Query("SELECT COUNT(DISTINCT us.sticker.id) FROM UserSticker us WHERE us.usuario = :usuario AND us.sticker.album = :album")
     long countByUserAndAlbum(@Param("usuario") Usuario usuario, @Param("album") Album album);
-    @Query("SELECT us.sticker.id FROM UserSticker us WHERE us.usuario = :usuario AND us.sticker.album = :album AND us.estado = :estado GROUP BY us.sticker.id HAVING COUNT(us) > 1")
+    @Query("SELECT us.sticker.id FROM UserSticker us WHERE us.usuario = :usuario AND us.sticker.album = :album AND us.estadoDB = :estado GROUP BY us.sticker.id HAVING COUNT(us) > 1")
     List<Long> findDuplicateStickerIdsByUsuarioAndAlbumAndEstado(@Param("usuario") Usuario usuario,
                                                                  @Param("album") Album album,
                                                                  @Param("estado") UserStickerEstado estado);
 
-    @Query("SELECT us FROM UserSticker us WHERE us.usuario = :usuario AND us.sticker.id IN :stickerIds AND us.estado = :estado")
+    @Query("SELECT us FROM UserSticker us WHERE us.usuario = :usuario AND us.sticker.id IN :stickerIds AND us.estadoDB = :estado")
     List<UserSticker> findByUsuarioAndStickerIdsAndEstado(@Param("usuario") Usuario usuario,
                                                           @Param("stickerIds") List<Long> stickerIds,
                                                           @Param("estado") UserStickerEstado estado);

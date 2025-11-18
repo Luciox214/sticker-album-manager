@@ -143,7 +143,7 @@ class AlbumServiceTest {
     private UserSticker buildUserSticker(Long stickerId, Rareza rareza) {
         UserSticker userSticker = new UserSticker();
         userSticker.setUsuario(usuario);
-        userSticker.setEstado(UserStickerEstado.EN_COLECCION);
+        userSticker.ponerEnColeccion();
         userSticker.setCreatedAt(OffsetDateTime.now());
 
         Sticker sticker = buildSticker(stickerId, rareza);

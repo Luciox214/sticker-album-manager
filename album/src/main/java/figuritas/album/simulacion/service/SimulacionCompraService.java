@@ -1,4 +1,5 @@
 package figuritas.album.simulacion.service;
+
 import figuritas.album.sticker.model.Sticker;
 import figuritas.album.userSticker.model.UserSticker;
 import figuritas.album.userSticker.model.UserStickerEstado;
@@ -26,15 +27,15 @@ public class SimulacionCompraService {
 
     @Transactional
     public List<UserSticker> comprarPaquete(Long userId, Long albumId) {
-    Long safeUserId = Objects.requireNonNull(userId, "userId no puede ser nulo");
-    Long safeAlbumId = Objects.requireNonNull(albumId, "albumId no puede ser nulo");
+        Long safeUserId = Objects.requireNonNull(userId, "userId no puede ser nulo");
+        Long safeAlbumId = Objects.requireNonNull(albumId, "albumId no puede ser nulo");
 
-    Usuario usuario = usuarioRepository.findById(safeUserId)
+        Usuario usuario = usuarioRepository.findById(safeUserId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-    albumRepository.findById(safeAlbumId)
-        .orElseThrow(() -> new IllegalArgumentException("Álbum no encontrado"));
+        albumRepository.findById(safeAlbumId)
+                .orElseThrow(() -> new IllegalArgumentException("Álbum no encontrado"));
 
-    List<Sticker> figuritasDisponibles = stickerRepository.findByAlbumId(safeAlbumId);
+        List<Sticker> figuritasDisponibles = stickerRepository.findByAlbumId(safeAlbumId);
         if (figuritasDisponibles.isEmpty()) {
             throw new IllegalStateException("No hay figuritas disponibles para este álbum");
         }
@@ -49,12 +50,18 @@ public class SimulacionCompraService {
                     UserSticker us = new UserSticker();
                     us.setUsuario(usuario);
                     us.setSticker(sticker);
-                    us.setEstado(UserStickerEstado.EN_COLECCION);
+                    // Se establece el estado usando el enum para persistencia
+                    // El patrón State se inicializará automáticamente con @PostLoad
+                    us.setEstadoDB(UserStickerEstado.EN_COLECCION);
+                    // Utiliza ponerEnColeccion para asegurar que la figurita esté correctamente
+                    // inicializada en la colección mediante el patrón State
+                    us.ponerEnColeccion();
                     return us;
                 })
                 .toList();
 
-    return userStickerRepository.saveAll(Objects.requireNonNull(obtenidas, "La lista de figuritas obtenidas no puede ser nula"));
+        return userStickerRepository
+                .saveAll(Objects.requireNonNull(obtenidas, "La lista de figuritas obtenidas no puede ser nula"));
     }
 
 }
