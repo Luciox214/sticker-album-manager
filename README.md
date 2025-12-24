@@ -126,7 +126,7 @@ src/main/java/figuritas/album/
 
 ---
 
-## 📦 Despliegue y Ejecución
+## Despliegue y Ejecución
 
 ### Prerrequisitos
 * Docker y Docker Compose
